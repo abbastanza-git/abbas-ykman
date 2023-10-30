@@ -1,0 +1,8 @@
+[SHORTCUT],[ISSUER]:[ACCOUNT NAME]
+or
+[SHORTCUT],[ACCOUNT NAME]
+since the issuer is optional
+
+yt,YouTube:example@gmail.com
+rd,Reddit:yourusername123
+mail:name@yourdomain.com
