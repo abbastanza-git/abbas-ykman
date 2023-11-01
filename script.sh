@@ -10,12 +10,27 @@ if [ "$keys" == "" ]; then
     exit 1
 fi
 
+account=""
+while getopts 'a:' OPTION; do
+  case "$OPTION" in
+    a)
+      account="$OPTARG"
+      ;;
+    ?)
+      exit 1
+      ;;
+  esac
+done
+# shift "$(($OPTIND -1))"
+
+# Get account input from user if it hasnt been provided as argument
+if [ "$account" == "" ]; then
+    dialog_input=$(osascript -e 'display dialog "Enter account:" default answer "" buttons {"OK"} default button 1')
+    account=${dialog_input:34}
+fi
+
 # checks (a) and (b) are only performed when no shortcut has been used
 check=true
-
-# Get account input from user
-account_input=$(osascript -e 'display dialog "Enter account:" default answer "" buttons {"OK"} default button 1')
-account=${account_input:34}
 
 # Check shortcut file if the user input matches a shortcut
 while read p; do
