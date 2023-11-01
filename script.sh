@@ -10,6 +10,22 @@ if [ "$keys" == "" ]; then
     exit 1
 fi
 
+declare -i counter=0
+    for i in $(seq 0 ${#keys});
+    do
+        char=${keys:$i-1:1}
+        if [ "$char" == ":" ]; then
+            ((counter++))
+        fi
+    done
+
+# Exits if more than one key is inserted
+# TODO: let the user choose between keys
+if ((counter > 1)); then
+    osascript -e 'display dialog "Multiple keys connected. Please use one key and try again!" buttons {"OK"} default button "OK" with icon caution'
+    exit 1
+fi
+
 account=""
 while getopts 'a:' OPTION; do
   case "$OPTION" in
