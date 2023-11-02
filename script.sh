@@ -6,7 +6,7 @@
 keys=$(ykman list)
 # Check if any yubikey is inserted
 if [ "$keys" == "" ]; then
-    osascript -e 'display dialog "No key connected. Please insert key and try again!" buttons {"OK"} default button "OK" with icon caution'
+    osascript -e 'display dialog "No key connected. Please insert key and try again!" buttons {"OK"} default button "OK" with icon caution with title "abbas-ykman"'
     exit 1
 fi
 
@@ -22,7 +22,7 @@ declare -i counter=0
 # Exits if more than one key is inserted
 # TODO: let the user choose between keys
 if ((counter > 1)); then
-    osascript -e 'display dialog "Multiple keys connected. Please use one key and try again!" buttons {"OK"} default button "OK" with icon caution'
+    osascript -e 'display dialog "Multiple keys connected. Please use one key and try again!" buttons {"OK"} default button "OK" with icon caution with title "abbas-ykman"'
     exit 1
 fi
 
@@ -41,7 +41,7 @@ done
 
 # Get account input from user if it hasnt been provided as argument
 if [ "$account" == "" ]; then
-    dialog_input=$(osascript -e 'display dialog "Enter account:" default answer "" buttons {"OK"} default button 1')
+    dialog_input=$(osascript -e 'display dialog "Enter account:" default answer "" buttons {"OK"} default button 1 with title "abbas-ykman"')
     account=${dialog_input:34}
 fi
 
@@ -64,7 +64,7 @@ done <./shortcuts
 # Check if account input is valid
 # (a) exit if input is empty
 if [ ! "$account" ] && $check; then
-    osascript -e 'display dialog "Invalid account name. No input. Please try again!" buttons {"OK"} default button "OK" with icon caution'
+    osascript -e 'display dialog "Invalid account name. No input. Please try again!" buttons {"OK"} default button "OK" with icon caution with title "abbas-ykman"'
     exit 1
 fi
 
@@ -72,7 +72,7 @@ code=$(ykman oath accounts code $account -s)
 
 # (b) exit if result is empty or no results have been found for the input
 if [ ! "$code" ] && $check; then
-    osascript -e 'display dialog "Invalid account name. Either no or ambivalent result. Please try again!" buttons {"OK"} default button "OK" with icon caution'
+    osascript -e 'display dialog "Invalid account name. Either no or ambivalent result. Please try again!" buttons {"OK"} default button "OK" with icon caution with title "abbas-ykman"'
     exit 1
 fi
 
