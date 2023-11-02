@@ -4,26 +4,44 @@
 # 
 
 keys=$(ykman list)
+key_serials="$(ykman list --serials)"
+
 # Check if any yubikey is inserted
-if [ "$keys" == "" ]; then
+if [ "$key_serials" == "" ]; then
     osascript -e 'display dialog "No key connected. Please insert key and try again!" buttons {"OK"} default button "OK" with icon caution with title "abbas-ykman"'
     exit 1
 fi
 
-declare -i counter=0
-    for i in $(seq 0 ${#keys});
-    do
-        char=${keys:$i-1:1}
-        if [ "$char" == ":" ]; then
-            ((counter++))
-        fi
-    done
+# If more than one key is connected (serial number is 8 digits long): check if inserted keys have the exact entries. Exits if entries aren't matching
+if ((${#key_serials} > 8)); then
+    answer=$(osascript <<EOF
+    display dialog "Connected keys:\n$keys\n\nDo you want to continue?" buttons {"Continue", "Exit"} default button 2
+    return button returned of result
+EOF
+)
+    if [ "$answer" = "Exit" ]; then 
+        exit 1
+    fi
 
-# Exits if more than one key is inserted
-# TODO: let the user choose between keys
-if ((counter > 1)); then
-    osascript -e 'display dialog "Multiple keys connected. Please use one key and try again!" buttons {"OK"} default button "OK" with icon caution with title "abbas-ykman"'
-    exit 1
+    prev=""
+    for serial in $key_serials
+    do 
+        current="$(ykman --device $serial oath accounts list)"
+        if [ ! "$prev" ]; then
+            prev="$current"
+            continue
+        fi
+        if [ ! "$prev" = "$current" ]; then
+            echo "Keys aren't matching"
+            exit 1
+        fi
+
+        prev="$current"
+        echo "Keys are matching"
+    done
+    serial=${key_serials:0:8}
+else
+    serial=$key_serials
 fi
 
 account=""
@@ -37,7 +55,6 @@ while getopts 'a:' OPTION; do
       ;;
   esac
 done
-# shift "$(($OPTIND -1))"
 
 # Get account input from user if it hasnt been provided as argument
 if [ "$account" == "" ]; then
@@ -68,7 +85,7 @@ if [ ! "$account" ] && $check; then
     exit 1
 fi
 
-code=$(ykman oath accounts code $account -s)
+code=$(ykman --device $serial oath accounts code $account -s)
 
 # (b) exit if result is empty or no results have been found for the input
 if [ ! "$code" ] && $check; then
