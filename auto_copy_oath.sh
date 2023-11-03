@@ -7,15 +7,16 @@ keys=$(ykman list)
 key_serials="$(ykman list --serials)"
 
 # Check if any yubikey is inserted
-if [ "$key_serials" == "" ]; then
+if [ ! "$key_serials" ]; then
     osascript -e 'display dialog "No key connected. Please insert key and try again!" buttons {"OK"} default button "OK" with icon caution with title "abbas-ykman"'
     exit 1
 fi
 
-# If more than one key is connected (serial number is 8 digits long): check if inserted keys have the exact entries. Exits if entries aren't matching
+# If more than one key (8 digits serial number) is connected: check if inserted keys have the exact same entries. 
+# Exits if entries aren't matching
 if ((${#key_serials} > 8)); then
     answer=$(osascript <<EOF
-    display dialog "Connected keys:\n$keys\n\nDo you want to continue?" buttons {"Continue", "Exit"} default button 2
+    display dialog "Connected keys:\n$keys\n\nDo you want to continue?" buttons {"Continue", "Exit"} default button 2 with title "abbas-ykman"
     return button returned of result
 EOF
 )
@@ -37,8 +38,8 @@ EOF
         fi
 
         prev="$current"
-        echo "Keys are matching"
     done
+    echo "Keys are matching"
     serial=${key_serials:0:8}
 else
     serial=$key_serials
