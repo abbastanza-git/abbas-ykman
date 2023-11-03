@@ -12,18 +12,34 @@ if [ ! "$key_serials" ]; then
     exit 1
 fi
 
-# If more than one key (8 digits serial number) is connected: check if inserted keys have the exact same entries. 
-# Exits if entries aren't matching
-if ((${#key_serials} > 8)); then
+# Compares if connected key(s) is/are trusted
+trusted=true
+
+# Corresponding file is empty
+if [ ! -s ./trusted_keys ]; then
+    trusted=false
+else
+    while read trusted_serial; do
+        if [[ ! "$key_serials" == *"$trusted_serial"* ]]; then
+            trusted=false
+        fi
+    done <./trusted_keys
+fi
+
+if ! $trusted; then
     answer=$(osascript <<EOF
-    display dialog "Connected keys:\n$keys\n\nDo you want to continue?" buttons {"Continue", "Exit"} default button 2 with title "abbas-ykman"
+    display dialog "At least one of the connected keys doesn't match your trusted keys.\n\n$keys" buttons {"Continue", "Exit"} default button 2 with title "abbas-ykman"
     return button returned of result
 EOF
 )
     if [ "$answer" = "Exit" ]; then 
         exit 1
     fi
+fi
 
+# If more than one key (8 digits serial number) is connected: check if inserted keys have the exact same entries. 
+# Exits if entries aren't matching
+if ((${#key_serials} > 8)); then
     prev=""
     for serial in $key_serials
     do 
@@ -33,13 +49,12 @@ EOF
             continue
         fi
         if [ ! "$prev" = "$current" ]; then
-            echo "Keys aren't matching"
+            osascript -e 'display dialog "The connected keys do not have matching entries!" buttons {"OK"} default button 1 with icon caution with title "abbas-ykman"'
             exit 1
         fi
 
         prev="$current"
     done
-    echo "Keys are matching"
     serial=${key_serials:0:8}
 else
     serial=$key_serials
